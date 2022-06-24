@@ -12,8 +12,7 @@ runs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        repository: logseq-cldwalker/graph-validator
-        ref: with-composite
+        repository: logseq/graph-validator
         path: _graph-validator
 
     - name: Set up Node
