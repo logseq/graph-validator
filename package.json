@@ -1,0 +1,27 @@
+{
+  "name": "@logseq/graph-validator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src -m test/run-tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logseq/graph-validator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/logseq/graph-validator/issues"
+  },
+  "homepage": "https://github.com/logseq/graph-validator#readme",
+  "dependencies": {
+    "@logseq/db": "https://github.com/logseq/logseq#workspace=@logseq/db&head=dev/yarn-workspaces",
+    "@logseq/graph-parser": "https://github.com/logseq/logseq#workspace=@logseq/graph-parser&head=dev/yarn-workspaces",
+    "@logseq/nbb-logseq": "^0.5.103"
+  },
+  "packageManager": "yarn@3.2.1"
+}

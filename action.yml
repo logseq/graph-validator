@@ -1,0 +1,43 @@
+name: 'Logseq Graph Validator'
+description: 'Runs tests on a logseq graph to see that some features are correctly used e.g. block refs and queries'
+inputs:
+  directory:
+    description: 'Directory to parse'
+    required: true
+    default: '.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: logseq-cldwalker/graph-validator
+        ref: with-composite
+        path: _graph-validator
+
+    - name: Set up Node
+      uses: actions/setup-node@v3
+
+    # Cache setup-node for yarn 3 - https://github.com/actions/setup-node/issues/488
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      shell: bash
+      working-directory: _graph-validator
+
+    - name: Restore yarn cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: yarn-cache-folder-${{ hashFiles('**/yarn.lock', '.yarnrc.yml') }}
+        restore-keys: |
+          yarn-cache-folder-
+
+    - name: Fetch yarn deps
+      run: cd _graph-validator && yarn install --immutable
+      shell: bash
+
+    - name: Run nbb tests
+      run: cd _graph-validator && yarn test ${{ inputs.directory }}
+      shell: bash
