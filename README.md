@@ -56,8 +56,8 @@ validate anything in a Logseq graph. To write your own action:
 
 1. Copy this whole repository.
 2. Write your own implementation in `action.cljs`.
-  1. `logseq.graph-parser.cli/parse-graph` is the fn you'll want to create a database connection and fetch markdown ast data.
-  2. This example uses `cljs.test` tests to run multiple validations on a graph. This is a personal preference and ultimately you only need your script to exit `0` on success and a non-zero code on failure.
+   1. `logseq.graph-parser.cli/parse-graph` is the fn you'll want to create a database connection and fetch markdown ast data.
+   2. This example uses `cljs.test` tests to run multiple validations on a graph. This is a personal preference and ultimately you only need your script to exit `0` on success and a non-zero code on failure.
 3. Update `action.yml` with your action's name, description and inputs.
 
 Your action can then be used as `user/repo@main`. To allow others to use specific versions of your action, [publish it](https://docs.github.com/en/actions/creating-actions/publishing-actions-in-github-marketplace).
