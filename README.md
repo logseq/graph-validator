@@ -70,6 +70,24 @@ Your action can then be used as `user/repo@main`. To allow others to use specifi
 
 This action [is a composite action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) that installs dependencies at job runtime. It would have been preferable to use a [javascript action](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action) that already bundles dependencies with a tool like `ncc`. `ncc` is not able to handle dynamic imports i.e. requires of npm libraries in cljs code. https://github.com/borkdude/nbb-action-example demonstrates a workaround for this. Unfortunately the graph-parser library is a large, fast-moving library that would be difficult to maintain with such an approach. A docker action approach has not been investigated and could also be promising.
 
+### Run this action elsewhere
+
+You may want to run this locally or in another environment e.g. gitlab. To run this locally:
+
+```sh
+# Setup once
+$ yarn install
+
+# Run this each time
+$ yarn test /path/to/graph
+```
+
+To run this in another environment, clone this repo, install dependencies and
+run tests. These steps are shown in the `action.yml` file. You can ignore the
+caching steps which are specific to github. Be sure that the environment you're
+running in supports yarn 3 as that is required in order to install dependencies.
+This repo is configured to automatically run yarn 3 via the `.yarn*` files.
+
 ## LICENSE
 See LICENSE.md
 
