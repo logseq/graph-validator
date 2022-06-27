@@ -51,8 +51,10 @@ This github action use [nbb-logseq](https://github.com/logseq/nbb-logseq) and th
 
 ## Write your own Logseq action
 
-This github action serves as an example that can be easily customized to
-validate anything in a Logseq graph. To write your own action:
+This github action serves as an example that can be easily customized. This
+action can validate almost anything in a Logseq graph as it has access to the
+graph's database connection and to the full markdown AST of a graph. To write
+your own action:
 
 1. Copy this whole repository.
 2. Write your own implementation in `action.cljs`.
