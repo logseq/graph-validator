@@ -28,6 +28,8 @@ jobs:
 That's it! This job will then run on future git pushes and fail if any invalid parts
 of your graph are detected.
 
+NOTE: The above example defaults to picking up new changes. If you'd prefer to stay on a stable version use the format `logseq/graph-validator@VERSION` e.g. `logseq/graph-validator@v0.1.0`. See CHANGELOG.md for released versions.
+
 ### Action Inputs
 
 This action can take inputs e.g.:
