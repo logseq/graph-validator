@@ -1,5 +1,5 @@
-(ns test
-  "Runs tests on a given graph directory"
+(ns action
+  "Github action that runs tests on a given graph directory"
   (:require [clojure.test :as t :refer [deftest is]]
             [datascript.core :as d]
             [logseq.graph-parser.cli :as gp-cli]
@@ -98,11 +98,11 @@
                       query-strings))
         "Queries have required :query key")))
 
-;; run this function with: nbb-logseq -m test/run-tests
+;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
   (let [dir* (or (first args) ".")
         ;; Move up a directory since the script is run in subdirectory of a
         ;; project
         dir (if (path/isAbsolute dir*) dir* (path/join ".." dir*))]
     (setup-graph dir)
-    (t/run-tests 'test)))
+    (t/run-tests 'action)))

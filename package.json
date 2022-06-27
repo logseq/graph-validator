@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src -m test/run-tests"
+    "test": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src -m action/run-tests"
   },
   "repository": {
     "type": "git",
