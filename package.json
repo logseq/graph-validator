@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src -m action/run-tests"
+    "test": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src -m action/run-tests",
+    "prebundle": "nbb-logseq -cp node_modules/@logseq/graph-parser/src:node_modules/@logseq/db/src bundle action.cljs -o out.mjs",
+    "bundle": "ncc build out.mjs -m"
   },
   "repository": {
     "type": "git",
@@ -21,7 +23,8 @@
   "dependencies": {
     "@logseq/db": "https://github.com/logseq/logseq#workspace=@logseq/db&head=dev/yarn-workspaces",
     "@logseq/graph-parser": "https://github.com/logseq/logseq#workspace=@logseq/graph-parser&head=dev/yarn-workspaces",
-    "@logseq/nbb-logseq": "^0.5.103"
+    "@logseq/nbb-logseq": "^0.6.125",
+    "@vercel/ncc": "^0.34.0"
   },
   "packageManager": "yarn@3.2.1"
 }
