@@ -45,6 +45,7 @@ runs:
     - name: Fetch nbb deps
       if: steps.nbb-deps.outputs.cache-hit != 'true'
       run: cd _graph-validator && yarn nbb-logseq -e ':fetching-deps'
+      shell: bash
 
     - name: Run nbb tests
       run: cd _graph-validator && yarn test ${{ inputs.directory }}
