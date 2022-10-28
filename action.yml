@@ -15,6 +15,12 @@ runs:
         repository: logseq/graph-validator
         path: _graph-validator
 
+    - name: Set up Clojure
+      uses: DeLaGuardo/setup-clojure@master
+      with:
+        cli: 1.11.1.1182
+        bb: 1.0.164
+
     - name: Set up Node
       uses: actions/setup-node@v3
 
