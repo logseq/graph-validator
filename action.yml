@@ -32,6 +32,20 @@ runs:
       run: cd _graph-validator && yarn install --immutable
       shell: bash
 
+    - name: Nbb cache
+      uses: actions/cache@v3
+      id: nbb-deps
+      with:
+        path: |
+          ~/.m2/repository
+          ~/.gitlibs
+        key: ${{ runner.os }}-nbb-deps-${{ hashFiles('_graph-validator/nbb.edn') }}
+        restore-keys: ${{ runner.os }}-nbb-deps-
+
+    - name: Fetch nbb deps
+      if: steps.nbb-deps.outputs.cache-hit != 'true'
+      run: cd _graph-validator && yarn nbb-logseq -e ':fetching-deps'
+
     - name: Run nbb tests
       run: cd _graph-validator && yarn test ${{ inputs.directory }}
       shell: bash
