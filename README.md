@@ -1,9 +1,8 @@
 ## Description
 
-This is a [github action](https://github.com/features/actions) to run validation
-tests on a Logseq graph. Currently it tests to ensure queries and block refs are
-valid. This action can catch errors that show up in the UI e.g.
-`Invalid query`.
+This is a [github action](https://github.com/features/actions) to run validation tests on a Logseq
+graph. Currently it tests to ensure queries, block refs and properties are valid. This action can
+catch errors that show up in the UI e.g. `Invalid query`.
 
 ## Usage
 
@@ -49,7 +48,9 @@ This action has the following inputs:
 
 ## Development
 
-This github action use [nbb-logseq](https://github.com/logseq/nbb-logseq) and the [graph-parser library](https://github.com/logseq/logseq/tree/master/deps/graph-parser) to analyze a Logseq graph using its database and markdown AST data. This action is configured to run with yarn 3.X since the graph-parser library is depended on as a yarn workspace.
+This github action use [nbb-logseq](https://github.com/logseq/nbb-logseq) and the [graph-parser
+library](https://github.com/logseq/logseq/tree/master/deps/graph-parser) to analyze a Logseq graph
+using its database and markdown AST data.
 
 ## Write your own Logseq action
 
@@ -84,9 +85,7 @@ $ yarn test /path/to/graph
 
 To run this in another environment, clone this repo, install dependencies and
 run tests. These steps are shown in the `action.yml` file. You can ignore the
-caching steps which are specific to github. Be sure that the environment you're
-running in supports yarn 3 as that is required in order to install dependencies.
-This repo is configured to automatically run yarn 3 via the `.yarn*` files.
+caching steps which are specific to github.
 
 ## LICENSE
 See LICENSE.md
