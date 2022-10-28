@@ -26,6 +26,7 @@ runs:
       with:
         node-version: '16'
         cache: 'yarn'
+        cache-dependency-path: _graph-validator/yarn.lock
 
     - name: Fetch yarn deps
       run: cd _graph-validator && yarn install --immutable
