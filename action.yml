@@ -23,21 +23,9 @@ runs:
 
     - name: Set up Node
       uses: actions/setup-node@v3
-
-    # Cache setup-node for yarn 3 - https://github.com/actions/setup-node/issues/488
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-      shell: bash
-      working-directory: _graph-validator
-
-    - name: Restore yarn cache
-      uses: actions/cache@v3
       with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: yarn-cache-folder-${{ hashFiles('**/yarn.lock', '.yarnrc.yml') }}
-        restore-keys: |
-          yarn-cache-folder-
+        node-version: '16'
+        cache: 'yarn'
 
     - name: Fetch yarn deps
       run: cd _graph-validator && yarn install --immutable
