@@ -3,7 +3,7 @@
   (:require [clojure.test :as t :refer [deftest is]]
             [datascript.core :as d]
             [logseq.graph-parser.cli :as gp-cli]
-            [logseq.graph-parser.text :as gp-text]
+            [logseq.graph-parser.util.block-ref :as block-ref]
             [logseq.db.rules :as rules]
             [clojure.set :as set]
             [clojure.edn :as edn]
@@ -40,8 +40,8 @@
        (mapcat (partial extract-subnodes-by-pred
                         #(and (= "Macro" (first %))
                               (= "embed" (:name (second %)))
-                              (gp-text/get-block-ref (str (first (:arguments (second %))))))))
-       (map #(-> % second :arguments first gp-text/get-block-ref))))
+                              (block-ref/get-block-ref-id (str (first (:arguments (second %))))))))
+       (map #(-> % second :arguments first block-ref/get-block-ref-id))))
 
 (deftest block-refs-are-valid
   (let [block-refs (ast->block-refs @all-asts)]
