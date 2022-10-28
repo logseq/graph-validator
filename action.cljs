@@ -98,6 +98,16 @@
                       query-strings))
         "Queries have required :query key")))
 
+(deftest no-invalid-properties
+  (is (empty?
+       (->> (d/q '[:find (pull ?b [*])
+                   :in $
+                   :where
+                   [?b :block/properties]]
+                 @@db-conn)
+            (map first)
+            (filter #(seq (:block/invalid-properties %)))))))
+
 ;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
   (let [dir* (or (first args) ".")

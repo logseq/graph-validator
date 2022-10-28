@@ -3,4 +3,4 @@
   {:git/url "https://github.com/logseq/logseq"
    :git/sha "223b62de28855d5ac6d82a330aa3c16ec1165272"
    :deps/root "deps/graph-parser"}
-   #_{:local/root "../../../logseq/deps/graph-parser"}}}
+  #_{:local/root "../logseq/deps/graph-parser"}}}
