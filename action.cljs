@@ -7,13 +7,16 @@
             [logseq.db.rules :as rules]
             [clojure.set :as set]
             [clojure.edn :as edn]
+            ["fs" :as fs]
             ["path" :as path]))
 
 (def db-conn (atom nil))
 (def all-asts (atom nil))
+(def graph-dir (atom nil))
 
 (defn- setup-graph [dir]
   (println "Parsing graph" dir)
+  (reset! graph-dir dir)
   (let [{:keys [conn asts]} (gp-cli/parse-graph dir {:verbose false})]
     (reset! db-conn conn)
     (reset! all-asts (mapcat :ast asts))
@@ -107,6 +110,24 @@
                  @@db-conn)
             (map first)
             (filter #(seq (:block/invalid-properties %)))))))
+
+(defn- ast->asset-links [ast]
+  (->> ast
+       (mapcat (partial extract-subnodes-by-pred
+                        #(and (= "Link" (first %))
+                              (= "Search" (-> % second :url first)))))
+       (map #(-> % second :url second))
+       (keep #(when (and (string? %) (= "assets" (path/basename (path/dirname %))))
+                %))))
+
+(deftest all-assets-should-exist-and-be-used
+  (let [used-assets (set (map path/basename (ast->asset-links @all-asts)))
+        all-assets (set (fs/readdirSync (path/join @graph-dir "assets")))]
+    (println "Found" (count used-assets) "assets")
+    (is (empty? (set/difference used-assets all-assets))
+        "All used assets should exist")
+    (is (empty? (set/difference all-assets used-assets))
+        "All assets should be used")))
 
 ;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
