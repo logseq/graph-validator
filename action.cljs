@@ -122,7 +122,9 @@
 
 (deftest all-assets-should-exist-and-be-used
   (let [used-assets (set (map path/basename (ast->asset-links @all-asts)))
-        all-assets (set (fs/readdirSync (path/join @graph-dir "assets")))]
+        all-assets (if (fs/existsSync (path/join @graph-dir "assets"))
+                     (set (fs/readdirSync (path/join @graph-dir "assets")))
+                     #{})]
     (println "Found" (count used-assets) "assets")
     (is (empty? (set/difference used-assets all-assets))
         "All used assets should exist")
