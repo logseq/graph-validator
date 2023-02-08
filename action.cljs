@@ -5,8 +5,10 @@
             [logseq.graph-parser.cli :as gp-cli]
             [logseq.graph-parser.util.block-ref :as block-ref]
             [logseq.db.rules :as rules]
+            [clojure.walk :as walk]
             [clojure.set :as set]
             [clojure.edn :as edn]
+            [clojure.string :as string]
             ["fs" :as fs]
             ["path" :as path]))
 
@@ -130,6 +132,54 @@
         "All used assets should exist")
     (is (empty? (set/difference all-assets used-assets))
         "All assets should be used")))
+
+(defn keep-for-ast [keep-node-fn nodes]
+  (let [found (atom [])]
+    (walk/postwalk
+     (fn [elem]
+       (when-let [saveable-val (and (vector? elem) (keep-node-fn elem))]
+         (swap! found conj saveable-val))
+       elem)
+     nodes)
+    @found))
+
+(defn- ast->tags [nodes]
+  (keep-for-ast
+   #(when (and (= "Tag" (first %)) (= "Plain" (-> % second first first)))
+      (-> % second first second))
+   nodes))
+
+(defn- ast->page-refs [nodes]
+  (keep-for-ast
+   #(when (and (= "Link" (first %)) (= "Page_ref" (-> % second :url first)))
+      (-> % second :url second))
+   nodes))
+
+(deftest all-tags-and-page-refs-should-have-pages
+  (let [used-tags (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
+        used-page-refs* (set (map string/lower-case (ast->page-refs @all-asts)))
+        ;; temporary until I do the more thorough version with gp-config/get-date-formatter
+        used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
+                                    used-page-refs*))
+        all-pages (if (fs/existsSync (path/join @graph-dir "pages"))
+                    (->> (fs/readdirSync (path/join @graph-dir "pages"))
+                         ;; strip extension if there is one
+                         (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
+                                   %))
+                         (map string/lower-case)
+                         (map #(string/replace % "___" "/"))
+                         set)
+                    #{})]
+    (prn :tags used-tags)
+    (prn :page-refs used-page-refs)
+    ; (prn :pages all-pages)
+    (println "Found" (count used-tags) "tags")
+    (println "Found" (count used-page-refs) "page refs")
+    (is (empty? (set/difference used-tags all-pages))
+        "All used tags should have pages")
+
+    (is (empty? (set/difference used-page-refs all-pages))
+        "All used page refs should have pages")))
 
 ;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
