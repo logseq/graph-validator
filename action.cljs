@@ -155,13 +155,28 @@
       (-> % second :url second))
    nodes))
 
+(defn- get-all-aliases
+  [db]
+  (->> (d/q '[:find (pull ?b [:block/properties])
+                            :in $ %
+                            :where
+                            (has-page-property ?b :alias)]
+                          db
+                          (vals rules/query-dsl-rules))
+                     (map first)
+                     (map (comp :alias :block/properties))
+                     (mapcat identity)
+                     (map string/lower-case)
+                     set))
+
 (deftest all-tags-and-page-refs-should-have-pages
   (let [used-tags (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
         used-page-refs* (set (map string/lower-case (ast->page-refs @all-asts)))
         ;; temporary until I do the more thorough version with gp-config/get-date-formatter
         used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
                                     used-page-refs*))
-        all-pages (if (fs/existsSync (path/join @graph-dir "pages"))
+        aliases (get-all-aliases @@db-conn)
+        all-pages* (if (fs/existsSync (path/join @graph-dir "pages"))
                     (->> (fs/readdirSync (path/join @graph-dir "pages"))
                          ;; strip extension if there is one
                          (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
@@ -169,7 +184,8 @@
                          (map string/lower-case)
                          (map #(string/replace % "___" "/"))
                          set)
-                    #{})]
+                    #{})
+        all-pages (into all-pages* aliases)]
     (prn :tags used-tags)
     (prn :page-refs used-page-refs)
     ; (prn :pages all-pages)
