@@ -143,10 +143,32 @@
      nodes)
     @found))
 
+(def ast->tag
+  #(when (and (= "Tag" (first %)) (= "Plain" (-> % second first first)))
+      (-> % second first second)))
+
 (defn- ast->tags [nodes]
+  (keep-for-ast ast->tag nodes))
+
+(defn- ast->false-tags [nodes]
   (keep-for-ast
-   #(when (and (= "Tag" (first %)) (= "Plain" (-> % second first first)))
-      (-> % second first second))
+   (fn [node]
+     (cond
+       ;; Pull out background-color properties
+       (= "Property_Drawer" (first node))
+       (->> (second node)
+            (filter #(#{"background-color"} (first %)))
+            (mapcat #(get % 2))
+            (keep ast->tag))
+
+       ;; Pull out tags in advanced queries
+       (= ["Custom" "query"] (take 2 node))
+       (when (= "Paragraph" (ffirst (get node 3)))
+         (->> (get node 3)
+              first
+              second
+              (keep ast->tag)))))
+
    nodes))
 
 (defn- ast->page-refs [nodes]
@@ -170,21 +192,23 @@
                      set))
 
 (deftest all-tags-and-page-refs-should-have-pages
-  (let [used-tags (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
+  (let [used-tags* (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
+        false-used-tags (mapcat identity (ast->false-tags @all-asts))
+        used-tags (apply disj used-tags* false-used-tags)
         used-page-refs* (set (map string/lower-case (ast->page-refs @all-asts)))
         ;; temporary until I do the more thorough version with gp-config/get-date-formatter
         used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
                                     used-page-refs*))
         aliases (get-all-aliases @@db-conn)
         all-pages* (if (fs/existsSync (path/join @graph-dir "pages"))
-                    (->> (fs/readdirSync (path/join @graph-dir "pages"))
-                         ;; strip extension if there is one
-                         (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
-                                   %))
-                         (map string/lower-case)
-                         (map #(string/replace % "___" "/"))
-                         set)
-                    #{})
+                     (->> (fs/readdirSync (path/join @graph-dir "pages"))
+                          ;; strip extension if there is one
+                          (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
+                                    %))
+                          (map string/lower-case)
+                          (map #(string/replace % "___" "/"))
+                          set)
+                     #{})
         all-pages (into all-pages* aliases)]
     (prn :tags used-tags)
     (prn :page-refs used-page-refs)
