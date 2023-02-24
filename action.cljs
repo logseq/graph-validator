@@ -222,6 +222,7 @@
 (defn- exclude-tests
   "Hacky way to exclude tests because t/run-tests doesn't give us test level control"
   [tests]
+  (prn :PUBLICS (ns-publics 'action))
   (doseq [t tests]
     (when-let [var (get (ns-publics 'action) (symbol t))]
       (println "Excluded test" var)
@@ -230,12 +231,12 @@
 ;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
   (let [dir* (or (first args) ".")
-        options (update (cli/parse-opts (rest args) {:coerce {:exclude []}
-                                                     :exec-args {:exclude []}})
+        options (update (cli/parse-opts (rest args) {:coerce {:exclude []}})
                         :exclude
                         ;; Handle edge case where want a collection to still be empty
                         ;; while specifying --exclude b/c of action.yml
                         #(if (= [""] %) [] %))
+        _ (prn :OPTIONS options)
         ;; Move up a directory since the script is run in subdirectory of a
         ;; project
         dir (if (path/isAbsolute dir*) dir* (path/join ".." dir*))]
