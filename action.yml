@@ -5,6 +5,10 @@ inputs:
     description: 'Directory to parse'
     required: true
     default: '.'
+  exclude:
+    description: 'Validations to exclude'
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -48,5 +52,5 @@ runs:
       shell: bash
 
     - name: Run nbb tests
-      run: cd _graph-validator && yarn test ${{ inputs.directory }}
+      run: cd _graph-validator && yarn test ${{ inputs.directory }} --exclude {{ inputs.exclude }}
       shell: bash

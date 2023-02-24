@@ -9,6 +9,7 @@
             [clojure.set :as set]
             [clojure.edn :as edn]
             [clojure.string :as string]
+            [babashka.cli :as cli]
             ["fs" :as fs]
             ["path" :as path]))
 
@@ -48,7 +49,7 @@
                               (block-ref/get-block-ref-id (str (first (:arguments (second %))))))))
        (map #(-> % second :arguments first block-ref/get-block-ref-id))))
 
-(deftest block-refs-are-valid
+(deftest block-refs-link-to-blocks-that-exist
   (let [block-refs (ast->block-refs @all-asts)]
     (println "Found" (count block-refs) "block refs")
     (is (empty?
@@ -63,7 +64,7 @@
                (map (comp :id :block/properties))
                set))))))
 
-(deftest embed-block-refs-are-valid
+(deftest embed-block-refs-link-to-blocks-that-exist
   (let [embed-refs (ast->embed-refs @all-asts)]
     (println "Found" (count embed-refs) "embed block refs")
     (is (empty?
@@ -88,7 +89,7 @@
                       (get subnode 4)))
                   nodes)))))
 
-(deftest advanced-queries-are-valid
+(deftest advanced-queries-have-valid-schema
   (let [query-strings (ast->queries @all-asts)]
     (println "Found" (count query-strings) "queries")
     (is (empty? (keep #(let [query (try (edn/read-string %)
@@ -103,7 +104,7 @@
                       query-strings))
         "Queries have required :query key")))
 
-(deftest no-invalid-properties
+(deftest invalid-properties-dont-exist
   (is (empty?
        (->> (d/q '[:find (pull ?b [*])
                    :in $
@@ -122,7 +123,7 @@
        (keep #(when (and (string? %) (= "assets" (path/basename (path/dirname %))))
                 %))))
 
-(deftest all-assets-should-exist-and-be-used
+(deftest assets-exist-and-are-used
   (let [used-assets (set (map path/basename (ast->asset-links @all-asts)))
         all-assets (if (fs/existsSync (path/join @graph-dir "assets"))
                      (set (fs/readdirSync (path/join @graph-dir "assets")))
@@ -133,7 +134,7 @@
     (is (empty? (set/difference all-assets used-assets))
         "All assets should be used")))
 
-(defn keep-for-ast [keep-node-fn nodes]
+(defn- keep-for-ast [keep-node-fn nodes]
   (let [found (atom [])]
     (walk/postwalk
      (fn [elem]
@@ -191,12 +192,12 @@
                      (map string/lower-case)
                      set))
 
-(deftest all-tags-and-page-refs-should-have-pages
+(deftest tags-and-page-refs-have-pages
   (let [used-tags* (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
         false-used-tags (mapcat identity (ast->false-tags @all-asts))
         used-tags (apply disj used-tags* false-used-tags)
         used-page-refs* (set (map string/lower-case (ast->page-refs @all-asts)))
-        ;; temporary until I do the more thorough version with gp-config/get-date-formatter
+        ;; TODO: Add more thorough version with gp-config/get-date-formatter as needed
         used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
                                     used-page-refs*))
         aliases (get-all-aliases @@db-conn)
@@ -210,9 +211,6 @@
                           set)
                      #{})
         all-pages (into all-pages* aliases)]
-    (prn :tags used-tags)
-    (prn :page-refs used-page-refs)
-    ; (prn :pages all-pages)
     (println "Found" (count used-tags) "tags")
     (println "Found" (count used-page-refs) "page refs")
     (is (empty? (set/difference used-tags all-pages))
@@ -221,11 +219,27 @@
     (is (empty? (set/difference used-page-refs all-pages))
         "All used page refs should have pages")))
 
+(defn- exclude-tests
+  "Hacky way to exclude tests because t/run-tests doesn't give us test level control"
+  [tests]
+  (doseq [t tests]
+    (when-let [var (get (ns-publics 'action) (symbol t))]
+      (println "Excluded test" var)
+      (alter-meta! var dissoc :test))))
+
 ;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& args]
   (let [dir* (or (first args) ".")
+        options (update (cli/parse-opts (rest args) {:coerce {:exclude []}
+                                                     :exec-args {:exclude []}})
+                        :exclude
+                        ;; Handle edge case where want a collection to still be empty
+                        ;; while specifying --exclude b/c of action.yml
+                        #(if (= [""] %) [] %))
         ;; Move up a directory since the script is run in subdirectory of a
         ;; project
         dir (if (path/isAbsolute dir*) dir* (path/join ".." dir*))]
+    (when (seq (:exclude options))
+      (exclude-tests (:exclude options)))
     (setup-graph dir)
     (t/run-tests 'action)))
