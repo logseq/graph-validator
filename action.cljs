@@ -232,9 +232,9 @@
   (let [dir* (or (first args) ".")
         options (update (cli/parse-opts (rest args) {:coerce {:exclude []}})
                         :exclude
-                        ;; Handle edge case where want a collection to still be empty
-                        ;; while specifying --exclude b/c of action.yml
-                        #(if (= [""] %) [] %))
+                        ;; Handle edge cases where exclude should be empty when
+                        ;; `--exclude ''` or `--exclude` b/c of action.yml
+                        #(if (#{[true] [""]} %) [] %))
         _ (println "Options:" (pr-str options))
         ;; Move up a directory since the script is run in subdirectory of a
         ;; project
