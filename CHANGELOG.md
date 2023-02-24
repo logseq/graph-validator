@@ -1,3 +1,8 @@
+## 0.3.0
+* Add validation for tags and page-refs having pages
+* Add validation for assets existing and being used
+* Add exclude option for excluding certain validations
+
 ## 0.2.0
 * Add detection of invalid properties
 * Internally action uses nbb.edn instead of yarn workspaces for managing logseq dep. Much easier to
