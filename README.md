@@ -46,6 +46,10 @@ This action has the following inputs:
 
 **Required:** The directory of the graph to test. Defaults to `.`.
 
+#### `exclude`
+
+Optional: A whitespace separated list of validations to exclude from running. Validation names are `deftest`s in `action.cljs` e.g. `tags-and-page-refs-have-pages`. Defaults to empty.
+
 ## Development
 
 This github action use [nbb-logseq](https://github.com/logseq/nbb-logseq) and the [graph-parser
