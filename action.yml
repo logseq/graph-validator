@@ -52,5 +52,5 @@ runs:
       shell: bash
 
     - name: Run nbb tests
-      run: cd _graph-validator && yarn test ${{ inputs.directory }} --exclude {{ inputs.exclude }}
+      run: cd _graph-validator && yarn test ${{ inputs.directory }} --exclude ${{ inputs.exclude }}
       shell: bash
