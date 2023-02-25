@@ -237,9 +237,9 @@
                         ;; `--exclude ''` or `--exclude` b/c of action.yml
                         #(if (#{[true] [""]} %) [] %))
         _ (println "Options:" (pr-str options))
-        ;; Move up a directory since the script is run in subdirectory of a
-        ;; project
-        dir (if (path/isAbsolute dir*) dir* (path/join ".." dir*))]
+        ;; In CI, move up a directory since the script is run in subdirectory of
+        ;; a project
+        dir (if js/process.env.CI (path/join ".." dir*) dir*)]
     (when (seq (:exclude options))
       (exclude-tests (:exclude options)))
     (setup-graph dir)
