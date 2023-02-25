@@ -2,10 +2,12 @@
   "name": "@logseq/graph-validator",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "nbb-logseq -m action/run-tests"
+  },
+  "bin": {
+    "graph-validator": "action.js"
   },
   "repository": {
     "type": "git",
@@ -19,7 +21,7 @@
   },
   "homepage": "https://github.com/logseq/graph-validator#readme",
   "dependencies": {
-    "@logseq/nbb-logseq": "^0.7.135",
+    "@logseq/nbb-logseq": "^1.2.168",
     "mldoc": "^1.5.0"
   }
 }

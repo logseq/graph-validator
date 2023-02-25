@@ -228,8 +228,9 @@
       (alter-meta! var dissoc :test))))
 
 ;; run this function with: nbb-logseq -m action/run-tests
-(defn run-tests [& args]
-  (let [dir* (or (first args) ".")
+(defn run-tests [& *args]
+  (let [args (js->clj *args)
+        dir* (or (first args) ".")
         options (update (cli/parse-opts (rest args) {:coerce {:exclude []}})
                         :exclude
                         ;; Handle edge cases where exclude should be empty when
@@ -243,3 +244,5 @@
       (exclude-tests (:exclude options)))
     (setup-graph dir)
     (t/run-tests 'action)))
+
+#js {:main run-tests}
