@@ -7,7 +7,7 @@
     "test": "nbb-logseq -m action/run-tests"
   },
   "bin": {
-    "graph-validator": "action.js"
+    "logseq-graph-validator": "action.js"
   },
   "repository": {
     "type": "git",

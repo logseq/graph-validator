@@ -1,8 +1,9 @@
 ## Description
 
-This is a [github action](https://github.com/features/actions) to run validation tests on a Logseq
-graph. Currently it tests to ensure queries, block refs and properties are valid. This action can
-catch errors that show up in the UI e.g. `Invalid query`.
+This is a [github action](https://github.com/features/actions) to run validation
+tests on a Logseq graph. This action can also be run as a [CLI](#cli).
+Validations check to ensure queries, block refs and properties are valid. This
+action can catch errors that show up in the UI e.g. `Invalid query`.
 
 ## Usage
 
@@ -38,6 +39,7 @@ This action can take inputs e.g.:
   uses: logseq/graph-validator@main
   with:
     directory: logseq-graph-directory
+    exclude: some-validation-test
 ```
 
 This action has the following inputs:
@@ -49,6 +51,35 @@ This action has the following inputs:
 #### `exclude`
 
 Optional: A whitespace separated list of validations to exclude from running. Validation names are `deftest`s in `action.cljs` e.g. `tags-and-page-refs-have-pages`. Defaults to empty.
+
+### CLI
+
+To use this as a CLI, first install it:
+
+```sh
+$ yarn install
+$ yarn global add $PWD
+```
+
+Then use it from any logseq graph directory!
+```sh
+$ logseq-graph-validator
+Options: {:exclude nil}
+Parsing graph .
+...
+Ran 6 tests containing 9 assertions.
+0 failures, 0 errors.
+
+# Use the exclude option to exclude certain validations from being run
+$ logseq-graph-validator . --exclude assets-exist-and-are-used tags-and-page-refs-have-pages
+Options: {:exclude ["assets-exist-and-are-used" "tags-and-page-refs-have-pages"]}
+Excluded test #'action/assets-exist-and-are-used
+Excluded test #'action/tags-and-page-refs-have-pages
+Parsing graph .
+...
+Ran 4 tests containing 5 assertions.
+0 failures, 0 errors.
+```
 
 ## Development
 
