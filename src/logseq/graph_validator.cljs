@@ -1,9 +1,10 @@
-(ns action
+(ns logseq.graph-validator
   "Github action that runs tests on a given graph directory"
   (:require [clojure.test :as t :refer [deftest is]]
             [datascript.core :as d]
             [logseq.graph-parser.cli :as gp-cli]
             [logseq.graph-parser.util.block-ref :as block-ref]
+            [logseq.graph-validator.state :as state]
             [logseq.db.rules :as rules]
             [clojure.walk :as walk]
             [clojure.set :as set]
@@ -14,20 +15,17 @@
             ["fs" :as fs]
             ["path" :as path]))
 
-(def db-conn (atom nil))
-(def all-asts (atom nil))
-(def graph-dir (atom nil))
-
 (defn- setup-graph [dir]
   (when-not (fs/existsSync dir)
     (println (str "Error: The directory '" dir "' does not exist."))
     (js/process.exit 1))
   (println "Parsing graph" dir)
-  (reset! graph-dir dir)
+  (reset! state/graph-dir dir)
   (let [{:keys [conn asts]} (gp-cli/parse-graph dir {:verbose false})]
-    (reset! db-conn conn)
-    (reset! all-asts (mapcat :ast asts))
-    (println "Ast node count:" (count @all-asts))))
+    (reset! state/all-asts (mapcat :ast asts))
+    ;; Gross but necessary to avoid double deref for every db fetch
+    (set! state/db-conn conn)
+    (println "Ast node count:" (count @state/all-asts))))
 
 (defn- extract-subnodes-by-pred [pred node]
   (cond
@@ -54,7 +52,7 @@
        (map #(-> % second :arguments first block-ref/get-block-ref-id))))
 
 (deftest block-refs-link-to-blocks-that-exist
-  (let [block-refs (ast->block-refs @all-asts)]
+  (let [block-refs (ast->block-refs @state/all-asts)]
     (println "Found" (count block-refs) "block refs")
     (is (empty?
          (set/difference
@@ -62,14 +60,14 @@
           (->> (d/q '[:find (pull ?b [:block/properties])
                       :in $ %
                       :where (has-property ?b :id)]
-                    @@db-conn
+                    @state/db-conn
                     (vals rules/query-dsl-rules))
                (map first)
                (map (comp :id :block/properties))
                set))))))
 
 (deftest embed-block-refs-link-to-blocks-that-exist
-  (let [embed-refs (ast->embed-refs @all-asts)]
+  (let [embed-refs (ast->embed-refs @state/all-asts)]
     (println "Found" (count embed-refs) "embed block refs")
     (is (empty?
          (set/difference
@@ -77,7 +75,7 @@
           (->> (d/q '[:find (pull ?b [:block/properties])
                       :in $ %
                       :where (has-property ?b :id)]
-                    @@db-conn
+                    @state/db-conn
                     (vals rules/query-dsl-rules))
                (map first)
                (map (comp :id :block/properties))
@@ -94,7 +92,7 @@
                   nodes)))))
 
 (deftest advanced-queries-have-valid-schema
-  (let [query-strings (ast->queries @all-asts)]
+  (let [query-strings (ast->queries @state/all-asts)]
     (println "Found" (count query-strings) "queries")
     (is (empty? (keep #(let [query (try (edn/read-string %)
                                      (catch :default _ nil))]
@@ -114,7 +112,7 @@
                    :in $
                    :where
                    [?b :block/properties]]
-                 @@db-conn)
+                 @state/db-conn)
             (map first)
             (filter #(seq (:block/invalid-properties %)))))))
 
@@ -128,9 +126,9 @@
                 %))))
 
 (deftest assets-exist-and-are-used
-  (let [used-assets (set (map path/basename (ast->asset-links @all-asts)))
-        all-assets (if (fs/existsSync (path/join @graph-dir "assets"))
-                     (set (fs/readdirSync (path/join @graph-dir "assets")))
+  (let [used-assets (set (map path/basename (ast->asset-links @state/all-asts)))
+        all-assets (if (fs/existsSync (path/join @state/graph-dir "assets"))
+                     (set (fs/readdirSync (path/join @state/graph-dir "assets")))
                      #{})]
     (println "Found" (count used-assets) "assets")
     (is (empty? (set/difference used-assets all-assets))
@@ -197,16 +195,16 @@
                      set))
 
 (deftest tags-and-page-refs-have-pages
-  (let [used-tags* (set (map (comp string/lower-case path/basename) (ast->tags @all-asts)))
-        false-used-tags (mapcat identity (ast->false-tags @all-asts))
+  (let [used-tags* (set (map (comp string/lower-case path/basename) (ast->tags @state/all-asts)))
+        false-used-tags (mapcat identity (ast->false-tags @state/all-asts))
         used-tags (apply disj used-tags* false-used-tags)
-        used-page-refs* (set (map string/lower-case (ast->page-refs @all-asts)))
+        used-page-refs* (set (map string/lower-case (ast->page-refs @state/all-asts)))
         ;; TODO: Add more thorough version with gp-config/get-date-formatter as needed
         used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
                                     used-page-refs*))
-        aliases (get-all-aliases @@db-conn)
-        all-pages* (if (fs/existsSync (path/join @graph-dir "pages"))
-                     (->> (fs/readdirSync (path/join @graph-dir "pages"))
+        aliases (get-all-aliases @state/db-conn)
+        all-pages* (if (fs/existsSync (path/join @state/graph-dir "pages"))
+                     (->> (fs/readdirSync (path/join @state/graph-dir "pages"))
                           ;; strip extension if there is one
                           (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
                                     %))
@@ -231,7 +229,6 @@
       (println "Excluded test" var)
       (alter-meta! var dissoc :test))))
 
-;; run this function with: nbb-logseq -m action/run-tests
 (defn run-tests [& *args]
   (let [args (js->clj *args)
         dir* (or (first args) ".")
@@ -253,6 +250,7 @@
         (p/then
          (fn [_promise-results]
            (setup-graph dir)
-           (apply t/run-tests (into ['action] (map symbol (:add-namespaces options)))))))))
+           (apply t/run-tests (into ['logseq.graph-validator]
+                                    (map symbol (:add-namespaces options)))))))))
 
 #js {:main run-tests}

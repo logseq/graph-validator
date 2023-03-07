@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 const __dirname = fileURLToPath(dirname(import.meta.url));
-const { main } = await loadFile(resolve(__dirname, 'action.cljs'));
+addClassPath(resolve(__dirname, 'src'));
+const { main } = await loadFile(resolve(__dirname, 'src/logseq/graph_validator.cljs'));
 
 // Expects to be called as node X.js ...
 const args = process.argv.slice(2)
