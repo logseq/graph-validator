@@ -12,6 +12,7 @@
             [clojure.string :as string]
             [babashka.cli :as cli]
             [promesa.core :as p]
+            [nbb.classpath :as classpath]
             ["fs" :as fs]
             ["path" :as path]))
 
@@ -245,6 +246,8 @@
         dir (if js/process.env.CI (path/join ".." dir*) dir*)]
     (when (seq (:exclude options))
       (exclude-tests (:exclude options)))
+    (when (seq (:add-namespaces options))
+      (classpath/add-classpath (path/join dir ".graph-validator")))
     (-> (p/all (map #(require (symbol %)) (:add-namespaces options)))
         (p/then
          (fn [_promise-results]

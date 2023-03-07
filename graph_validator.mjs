@@ -10,6 +10,4 @@ const { main } = await loadFile(resolve(__dirname, 'src/logseq/graph_validator.c
 
 // Expects to be called as node X.js ...
 const args = process.argv.slice(2)
-// Add classpath for user namespaces
-addClassPath(resolve(args[0] || '.', '.graph-validator'));
 main.apply(null, args);
