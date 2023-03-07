@@ -54,10 +54,11 @@ Optional: A whitespace separated list of validations to exclude from running. Va
 
 ### CLI
 
-To use this as a CLI, first install it:
+To use this as a CLI locally, first install it:
 
 ```sh
-$ yarn install
+$ git clone https://github.com/logseq/graph-validator
+$ cd graph-validator && yarn install
 $ yarn global add $PWD
 ```
 

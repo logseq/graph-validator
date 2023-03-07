@@ -10,6 +10,7 @@
             [clojure.edn :as edn]
             [clojure.string :as string]
             [babashka.cli :as cli]
+            [promesa.core :as p]
             ["fs" :as fs]
             ["path" :as path]))
 
@@ -18,6 +19,9 @@
 (def graph-dir (atom nil))
 
 (defn- setup-graph [dir]
+  (when-not (fs/existsSync dir)
+    (println (str "Error: The directory '" dir "' does not exist."))
+    (js/process.exit 1))
   (println "Parsing graph" dir)
   (reset! graph-dir dir)
   (let [{:keys [conn asts]} (gp-cli/parse-graph dir {:verbose false})]
@@ -231,7 +235,10 @@
 (defn run-tests [& *args]
   (let [args (js->clj *args)
         dir* (or (first args) ".")
-        options (update (cli/parse-opts (rest args) {:coerce {:exclude []}})
+        options (update (cli/parse-opts (rest args) {:coerce {:exclude []
+                                                              :add-namespaces []}
+                                                     :alias {:a :add-namespaces}
+                                                     :exec-args {:add-namespaces []}})
                         :exclude
                         ;; Handle edge cases where exclude should be empty when
                         ;; `--exclude ''` or `--exclude` b/c of action.yml
@@ -242,7 +249,10 @@
         dir (if js/process.env.CI (path/join ".." dir*) dir*)]
     (when (seq (:exclude options))
       (exclude-tests (:exclude options)))
-    (setup-graph dir)
-    (t/run-tests 'action)))
+    (-> (p/all (map #(require (symbol %)) (:add-namespaces options)))
+        (p/then
+         (fn [_promise-results]
+           (setup-graph dir)
+           (apply t/run-tests (into ['action] (map symbol (:add-namespaces options)))))))))
 
 #js {:main run-tests}
