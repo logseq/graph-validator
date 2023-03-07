@@ -116,7 +116,7 @@ You may want to run this locally or in another environment e.g. gitlab. To run t
 $ yarn install
 
 # Run this each time
-$ yarn test /path/to/graph
+$ node graph_validator.mjs /path/to/graph
 ```
 
 To run this in another environment, clone this repo, install dependencies and
