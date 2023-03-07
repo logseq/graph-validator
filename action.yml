@@ -8,7 +8,11 @@ inputs:
   exclude:
     description: 'Validations to exclude'
     required: false
-    default: ''
+    default: 'logseq-graph-validator-empty'
+  add-namespaces:
+    description: 'Add namespaces to require and test them'
+    required: false
+    default: 'logseq-graph-validator-empty'
 
 runs:
   using: "composite"

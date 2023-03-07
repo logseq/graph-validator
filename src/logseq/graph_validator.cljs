@@ -232,14 +232,13 @@
 (defn run-tests [& *args]
   (let [args (js->clj *args)
         dir* (or (first args) ".")
-        options (update (cli/parse-opts (rest args) {:coerce {:exclude []
-                                                              :add-namespaces []}
-                                                     :alias {:a :add-namespaces}
-                                                     :exec-args {:add-namespaces []}})
-                        :exclude
-                        ;; Handle edge cases where exclude should be empty when
-                        ;; `--exclude ''` or `--exclude` b/c of action.yml
-                        #(if (#{[true] [""]} %) [] %))
+        options (-> (cli/parse-opts (rest args) {:coerce {:exclude []
+                                                          :add-namespaces []}
+                                                 :alias {:a :add-namespaces}
+                                                 :exec-args {:add-namespaces []}})
+                    ;; Handle empty collection values coming from action.yml
+                    (update :exclude #(if (= ["logseq-graph-validator-empty"] %) [] %))
+                    (update :add-namespaces #(if (= ["logseq-graph-validator-empty"] %) [] %)))
         _ (println "Options:" (pr-str options))
         ;; In CI, move up a directory since the script is run in subdirectory of
         ;; a project
