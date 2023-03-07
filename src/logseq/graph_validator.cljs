@@ -225,7 +225,7 @@
   "Hacky way to exclude tests because t/run-tests doesn't give us test level control"
   [tests]
   (doseq [t tests]
-    (when-let [var (get (ns-publics 'action) (symbol t))]
+    (when-let [var (get (ns-publics 'logseq.graph-validator) (symbol t))]
       (println "Excluded test" var)
       (alter-meta! var dissoc :test))))
 
