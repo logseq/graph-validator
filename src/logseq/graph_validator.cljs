@@ -230,20 +230,34 @@
       (println "Excluded test" var)
       (alter-meta! var dissoc :test))))
 
-(defn run-tests [& *args]
-  (let [args (js->clj *args)
-        dir* (or (first args) ".")
-        options (-> (cli/parse-opts (rest args) {:coerce {:exclude []
-                                                          :add-namespaces []}
-                                                 :alias {:a :add-namespaces}
-                                                 :exec-args {:add-namespaces []}})
+(def spec
+  "Options spec"
+  {:add-namespaces {:alias :a
+                    :coerce []
+                    :desc "Additional namespaces to test"}
+   :directory {:desc "Graph directory to validate"
+               :alias :d
+               :default "."}
+   :exclude {:alias :e
+             :coerce []
+             :desc "Specific tests to exclude"}
+   :help {:alias :h
+          :desc "Print help"}})
+
+(defn run-tests [& args]
+  (let [options (-> (cli/parse-opts args {:spec spec})
                     ;; Handle empty collection values coming from action.yml
                     (update :exclude #(if (= ["logseq-graph-validator-empty"] %) [] %))
                     (update :add-namespaces #(if (= ["logseq-graph-validator-empty"] %) [] %)))
-        _ (println "Options:" (pr-str options))
+        _ (when (:help options)
+            (println (str "Usage: logseq-graph-validator [OPTIONS]\nOptions:\n"
+                          (cli/format-opts {:spec spec})))
+            (js/process.exit 1))
+        ;; Debugging info for CI
+        _ (when js/process.env.CI (println "Options:" (pr-str options)))
         ;; In CI, move up a directory since the script is run in subdirectory of
         ;; a project
-        dir (if js/process.env.CI (path/join ".." dir*) dir*)]
+        dir (if js/process.env.CI (path/join ".." (:directory options)) (:directory options))]
     (when (seq (:exclude options))
       (exclude-tests (:exclude options)))
     (when (seq (:add-namespaces options))

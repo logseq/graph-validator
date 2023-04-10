@@ -1,6 +1,5 @@
 {:deps
- {org.babashka/cli {:mvn/version "0.6.48"}
-  logseq/graph-parser
+ {logseq/graph-parser
   {:git/url "https://github.com/logseq/logseq"
    :git/sha "50ff53ea72fb5fdc45296dfc6431e60d1b365414"
    :deps/root "deps/graph-parser"}

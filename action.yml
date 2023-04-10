@@ -56,5 +56,5 @@ runs:
       shell: bash
 
     - name: Run nbb tests
-      run: cd _graph-validator && node graph_validator.mjs ${{ inputs.directory }} --exclude ${{ inputs.exclude }} --add-namespaces ${{ inputs.add-namespaces }}
+      run: cd _graph-validator && node graph_validator.mjs --directory ${{ inputs.directory }} --exclude ${{ inputs.exclude }} --add-namespaces ${{ inputs.add-namespaces }}
       shell: bash
