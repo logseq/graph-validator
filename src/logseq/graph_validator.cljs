@@ -5,6 +5,7 @@
             [logseq.graph-parser.cli :as gp-cli]
             [logseq.graph-parser.util.block-ref :as block-ref]
             [logseq.graph-validator.state :as state]
+            [logseq.graph-validator.config :as config]
             [logseq.db.rules :as rules]
             [clojure.walk :as walk]
             [clojure.set :as set]
@@ -244,7 +245,39 @@
    :help {:alias :h
           :desc "Print help"}})
 
-(defn run-tests [& args]
+(defn- read-config [config]
+  (try
+    (edn/read-string config)
+    (catch :default _
+      (println "Error: Failed to parse config. Make sure it is valid EDN")
+      (js/process.exit 1))))
+
+(defn- get-validator-config [dir user-config]
+  (merge-with (fn [v1 v2]
+                (if (and (map? v1) (map? v2))
+                  (merge v1 v2) v2))
+              config/default-config
+              (when (fs/existsSync (path/join dir ".graph-validator" "config.edn"))
+                (read-config
+                 (str (fs/readFileSync (path/join dir ".graph-validator" "config.edn")))))
+              user-config))
+
+(defn- run-tests [dir user-config]
+  (let [;; Only allow non-empty options to not override .graph-validator/config.edn
+        user-config' (into {} (keep (fn [[k v]] (when (seq v) [k v])) user-config))
+        {:keys [exclude add-namespaces]} (get-validator-config dir user-config')]
+    (when (seq exclude)
+      (exclude-tests exclude))
+    (when (seq add-namespaces)
+      (classpath/add-classpath (path/join dir ".graph-validator")))
+    (-> (p/all (map #(require (symbol %)) add-namespaces))
+        (p/then
+         (fn [_promise-results]
+           (setup-graph dir)
+           (apply t/run-tests (into ['logseq.graph-validator]
+                                    (map symbol add-namespaces))))))))
+
+(defn -main [& args]
   (let [options (-> (cli/parse-opts args {:spec spec})
                     ;; Handle empty collection values coming from action.yml
                     (update :exclude #(if (= ["logseq-graph-validator-empty"] %) [] %))
@@ -258,15 +291,6 @@
         ;; In CI, move up a directory since the script is run in subdirectory of
         ;; a project
         dir (if js/process.env.CI (path/join ".." (:directory options)) (:directory options))]
-    (when (seq (:exclude options))
-      (exclude-tests (:exclude options)))
-    (when (seq (:add-namespaces options))
-      (classpath/add-classpath (path/join dir ".graph-validator")))
-    (-> (p/all (map #(require (symbol %)) (:add-namespaces options)))
-        (p/then
-         (fn [_promise-results]
-           (setup-graph dir)
-           (apply t/run-tests (into ['logseq.graph-validator]
-                                    (map symbol (:add-namespaces options)))))))))
+    (run-tests dir (select-keys options [:add-namespaces :exclude]))))
 
-#js {:main run-tests}
+#js {:main -main}
