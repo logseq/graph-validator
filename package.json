@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/logseq/graph-validator#readme",
   "dependencies": {
-    "@logseq/nbb-logseq": "^1.2.168",
+    "@logseq/nbb-logseq": "^1.2.173",
     "mldoc": "^1.5.0"
   }
 }
