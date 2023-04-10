@@ -65,15 +65,13 @@ $ yarn global add $PWD
 Then use it from any logseq graph directory!
 ```sh
 $ logseq-graph-validator
-Options: {:exclude nil}
 Parsing graph .
 ...
 Ran 6 tests containing 9 assertions.
 0 failures, 0 errors.
 
 # Use the exclude option to exclude certain validations from being run
-$ logseq-graph-validator . --exclude assets-exist-and-are-used tags-and-page-refs-have-pages
-Options: {:exclude ["assets-exist-and-are-used" "tags-and-page-refs-have-pages"]}
+$ logseq-graph-validator --exclude assets-exist-and-are-used tags-and-page-refs-have-pages
 Excluded test #'action/assets-exist-and-are-used
 Excluded test #'action/tags-and-page-refs-have-pages
 Parsing graph .
@@ -81,6 +79,46 @@ Parsing graph .
 Ran 4 tests containing 5 assertions.
 0 failures, 0 errors.
 ```
+
+## Configuration
+
+To configure the validator, create a `.graph-validator/config.edn` file in your
+graph's directory. See [the config
+file](https://github.com/logseq/graph-validator/blob/main/src/logseq/graph_validator/config.cljs)
+for the full list of configuration keys.
+
+## Custom Validations
+
+Custom validations can be added to your graph by writing nbb-logseq compatible
+[cljs tests](https://clojurescript.org/tools/testing) under `.graph-validator/`.
+graph-validator already handles parsing the graph, so all a test does is
+query against the graph's datascript db, `logseq.graph-parser.state/db-conn` See
+`logseq.graph-parser.state` for other available state to use in tests. For
+example, add a `.graph-validator/foo.cljs` with the content:
+
+```cljs
+(ns foo
+  (:require [cljs.test :refer [deftest is]]
+            [logseq.graph-validator.state :as state]
+            [datascript.core :as d]))
+
+(deftest no-page-named-foo
+  (is (= 0
+         (->> (d/q '[:find (pull ?b [*])
+                     :in $ ?name
+                     :where
+                     [?b :block/name ?bn]
+                     [(= ?name ?bn)]]
+                   @state/db-conn
+                   "foo")
+              count))))
+```
+
+This test does a silly check that the page 'foo' doesn't exist in the graph. To
+enable this custom test in your action, create `.graph-validator/config.edn`
+with `{:add-namespaces [foo]}`.
+
+For a real world example of a custom validation, see [this example in docs](https://github.com/logseq/docs/blob/master/.graph-validator/schema.cljs).
 
 ## Development
 

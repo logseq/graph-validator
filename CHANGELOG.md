@@ -1,3 +1,8 @@
+## 0.4.0
+* Add support for custom validations
+* Introduce a .graph-validator/config.edn
+* Introduce a CLI version of the action
+
 ## 0.3.0
 * Add validation for tags and page-refs having pages
 * Add validation for assets existing and being used

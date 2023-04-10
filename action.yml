@@ -9,10 +9,6 @@ inputs:
     description: 'Validations to exclude'
     required: false
     default: 'logseq-graph-validator-empty'
-  add-namespaces:
-    description: 'Add namespaces to require and test them'
-    required: false
-    default: 'logseq-graph-validator-empty'
 
 runs:
   using: "composite"
@@ -56,5 +52,5 @@ runs:
       shell: bash
 
     - name: Run nbb tests
-      run: cd _graph-validator && node graph_validator.mjs --directory ${{ inputs.directory }} --exclude ${{ inputs.exclude }} --add-namespaces ${{ inputs.add-namespaces }}
+      run: cd _graph-validator && node graph_validator.mjs --directory ${{ inputs.directory }} --exclude ${{ inputs.exclude }}
       shell: bash

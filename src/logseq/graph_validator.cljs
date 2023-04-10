@@ -280,8 +280,7 @@
 (defn -main [& args]
   (let [options (-> (cli/parse-opts args {:spec spec})
                     ;; Handle empty collection values coming from action.yml
-                    (update :exclude #(if (= ["logseq-graph-validator-empty"] %) [] %))
-                    (update :add-namespaces #(if (= ["logseq-graph-validator-empty"] %) [] %)))
+                    (update :exclude #(if (= ["logseq-graph-validator-empty"] %) [] %)))
         _ (when (:help options)
             (println (str "Usage: logseq-graph-validator [OPTIONS]\nOptions:\n"
                           (cli/format-opts {:spec spec})))
