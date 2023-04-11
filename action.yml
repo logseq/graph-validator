@@ -43,6 +43,7 @@ runs:
         path: |
           ~/.m2/repository
           ~/.gitlibs
+          _graph-validator/.nbb/.cache
         key: ${{ runner.os }}-nbb-deps-${{ hashFiles('_graph-validator/nbb.edn') }}
         restore-keys: ${{ runner.os }}-nbb-deps-
 
