@@ -54,7 +54,7 @@ Optional: A whitespace separated list of validations to exclude from running. Va
 
 ### CLI
 
-To use this as a CLI locally, first install it:
+To use this as a CLI locally, install [babashka](https://github.com/babashka/babashka#installation) and then:
 
 ```sh
 $ git clone https://github.com/logseq/graph-validator
