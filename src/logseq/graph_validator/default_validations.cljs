@@ -179,6 +179,7 @@
                      (map string/lower-case)
                      set))
 
+;; Ignores journal page references since those are used as datestamps
 (deftest tags-and-page-refs-have-pages
   (let [used-tags* (set (map (comp string/lower-case path/basename) (ast->tags @state/all-asts)))
         false-used-tags (mapcat identity (ast->false-tags @state/all-asts))
@@ -188,16 +189,13 @@
         used-page-refs (set (remove #(re-find #"^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+" %)
                                     used-page-refs*))
         aliases (get-all-aliases @state/db-conn)
-        all-pages* (if (fs/existsSync (path/join @state/graph-dir "pages"))
-                     (->> (fs/readdirSync (path/join @state/graph-dir "pages"))
-                          ;; strip extension if there is one
-                          (map #(or (second (re-find #"(.*)(?:\.[^.]+)$" %))
-                                    %))
-                          (map string/lower-case)
-                          (map #(string/replace % "___" "/"))
-                          set)
-                     #{})
-        all-pages (into all-pages* aliases)]
+        all-db-pages* (->> (d/q '[:find ?n
+                                  :where [?b :block/name ?n] [?b :block/file] [?b :block/journal? false]]
+                                @state/db-conn)
+                           (map first)
+                           set)
+        all-pages (into all-db-pages* aliases)]
+    (println "Found" (count all-pages) "pages in db")
     (println "Found" (count used-tags) "tags")
     (println "Found" (count used-page-refs) "page refs")
     (is (empty? (set/difference used-tags all-pages))
