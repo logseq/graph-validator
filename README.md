@@ -54,7 +54,9 @@ Optional: A whitespace separated list of validations to exclude from running. Va
 
 ### CLI
 
-To use this as a CLI locally, install [babashka](https://github.com/babashka/babashka#installation) and then:
+To use this as a CLI locally, first install
+[babashka](https://github.com/babashka/babashka#installation) and
+[clojure](https://clojure.org/guides/install_clojure). Then:
 
 ```sh
 $ git clone https://github.com/logseq/graph-validator
@@ -79,6 +81,9 @@ Parsing graph .
 Ran 4 tests containing 5 assertions.
 0 failures, 0 errors.
 ```
+
+NOTE: Running the CLI currently depends on a clean git state e.g. `git status` prints `nothing to
+commit, working tree clean`.
 
 ## Configuration
 
