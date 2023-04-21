@@ -1,9 +1,9 @@
 ## Description
 
-This is a [github action](https://github.com/features/actions) to run validation
-tests on a Logseq graph. This action can also be run as a [CLI](#cli).
-Validations check to ensure queries, block refs and properties are valid. This
-action can catch errors that show up in the UI e.g. `Invalid query`.
+This is a [github action](https://github.com/features/actions) to run
+[validations](#validations) on a Logseq graph. This action can also be run as a
+[CLI](#cli). Validations check to ensure queries, block refs and properties are
+valid. This action can catch errors that show up in the UI e.g. `Invalid query`.
 
 ## Usage
 
@@ -50,7 +50,9 @@ This action has the following inputs:
 
 #### `exclude`
 
-Optional: A whitespace separated list of validations to exclude from running. Validation names are `deftest`s in `action.cljs` e.g. `tags-and-page-refs-have-pages`. Defaults to empty.
+Optional: A whitespace separated list of validations to exclude from running.
+Validation names are listed in [default validations](#default-validations) e.g.
+`tags-and-page-refs-have-pages`. Defaults to empty.
 
 ### CLI
 
@@ -92,12 +94,43 @@ graph's directory. See [the config
 file](https://github.com/logseq/graph-validator/blob/main/src/logseq/graph_validator/config.cljs)
 for the full list of configuration keys.
 
-## Custom Validations
+## Validations
+
+Validations runs on _all_ files for a given graph. A validation prints if it
+fails. A validation can have multiple errors. For engineers, a validation is
+just a ClojureScript `deftest`.
+
+### Default Validations
+
+These are validations that are enabled by default. Any of them can be disabled
+with the `exclude` option above. Available validations:
+
+- `block-refs-link-to-blocks-that-exist` - If a block ref e.g.
+  `((694dc3ff-e714-4db0-8b36-58f2ff0b48a4))` links to a nonexistent block,
+  Logseq displays it as invalid. This validation prints all such invalid block ids.
+- `embed-block-refs-link-to-blocks-that-exist` - Similar to
+  `block-refs-link-to-blocks-that-exist`, if an embedded block ref is invalid,
+  this validation prints its corresponding invalid block id.
+- `advanced-queries-have-valid-schema` - If an [advanced
+  query](https://docs.logseq.com/#/page/advanced%20queries) is not a valid map
+  or missing required keys, this validation prints those queries.
+- `invalid-properties-dont-exist` - A
+  [property](https://docs.logseq.com/#/page/properties/block/usage) can get in
+  an invalid state with invalid names. This validation prints those invalid
+  properties.
+- `assets-exist-and-are-used` - This validation catches two types of common
+  issues with invalid assets - asset links that point to assets that don't exist
+  and assets that are not referenced anywhere in the graphs.
+- `tags-and-page-refs-have-pages` - This validation prints all tags and page
+  refs that don't have a Logseq page. This is useful for those using Logseq more
+  like a personal wikipedia and want to ensure that each link has meaningful content.
+
+### Custom Validations
 
 Custom validations can be added to your graph by writing nbb-logseq compatible
 [cljs tests](https://clojurescript.org/tools/testing) under `.graph-validator/`.
 graph-validator already handles parsing the graph, so all a test does is
-query against the graph's datascript db, `logseq.graph-parser.state/db-conn` See
+query against the graph's datascript db, `logseq.graph-parser.state/db-conn`. See
 `logseq.graph-parser.state` for other available state to use in tests. For
 example, add a `.graph-validator/foo.cljs` with the content:
 
