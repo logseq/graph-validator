@@ -111,9 +111,9 @@ with the `exclude` option above. Available validations:
 - `embed-block-refs-link-to-blocks-that-exist` - Similar to
   `block-refs-link-to-blocks-that-exist`, if an embedded block ref is invalid,
   this validation prints its corresponding invalid block id.
-- `advanced-queries-have-valid-schema` - If an [advanced
-  query](https://docs.logseq.com/#/page/advanced%20queries) is not a valid map
-  or missing required keys, this validation prints those queries.
+- `advanced-queries-have-valid-schema` - If an [advanced query](https://docs.logseq.com/#/page/advanced%20queries)
+  is not a valid map or missing required keys, this validation prints those
+  queries.
 - `invalid-properties-dont-exist` - A
   [property](https://docs.logseq.com/#/page/properties/block/usage) can get in
   an invalid state with invalid names. This validation prints those invalid
