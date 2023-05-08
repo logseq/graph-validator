@@ -80,13 +80,13 @@
   (let [query-strings (ast->queries @state/all-asts)]
     (println "Found" (count query-strings) "queries")
     (is (empty? (keep #(let [query (try (edn/read-string %)
-                                     (catch :default _ nil))]
+                                        (catch :default _ nil))]
                          (when (nil? query) %))
                       query-strings))
         "Queries are valid EDN")
 
     (is (empty? (keep #(let [query (try (edn/read-string %)
-                                     (catch :default _ nil))]
+                                        (catch :default _ nil))]
                          (when (not (contains? query :query)) %))
                       query-strings))
         "Queries have required :query key")))
@@ -110,10 +110,14 @@
        (keep #(when (and (string? %) (= "assets" (path/basename (path/dirname %))))
                 %))))
 
+;; Only checks top-level assets for now
 (deftest assets-exist-and-are-used
   (let [used-assets (set (map path/basename (ast->asset-links @state/all-asts)))
         all-assets (if (fs/existsSync (path/join @state/graph-dir "assets"))
-                     (set (fs/readdirSync (path/join @state/graph-dir "assets")))
+                     (->> (fs/readdirSync (path/join @state/graph-dir "assets") #js {:withFileTypes true})
+                          (filter #(not (.isDirectory %)))
+                          (map #(.-name %))
+                          set)
                      #{})]
     (println "Found" (count used-assets) "assets")
     (is (empty? (set/difference used-assets all-assets))
@@ -133,7 +137,7 @@
 
 (def ast->tag
   #(when (and (= "Tag" (first %)) (= "Plain" (-> % second first first)))
-      (-> % second first second)))
+     (-> % second first second)))
 
 (defn- ast->tags [nodes]
   (keep-for-ast ast->tag nodes))
@@ -168,16 +172,16 @@
 (defn- get-all-aliases
   [db]
   (->> (d/q '[:find (pull ?b [:block/properties])
-                            :in $ %
-                            :where
-                            (has-page-property ?b :alias)]
-                          db
-                          (vals rules/query-dsl-rules))
-                     (map first)
-                     (map (comp :alias :block/properties))
-                     (mapcat identity)
-                     (map string/lower-case)
-                     set))
+              :in $ %
+              :where
+              (has-page-property ?b :alias)]
+            db
+            (vals rules/query-dsl-rules))
+       (map first)
+       (map (comp :alias :block/properties))
+       (mapcat identity)
+       (map string/lower-case)
+       set))
 
 ;; Ignores journal page references since those are used as datestamps
 (deftest tags-and-page-refs-have-pages
