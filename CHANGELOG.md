@@ -1,6 +1,7 @@
 ## Unreleased
 * Fix `assets-exist-and-are-used` validation - asset subdirectories caused a false negative
 * Fix `tags-and-page-refs-have-pages` validation - whiteboard page refs weren't recognized
+* Add var to allow validations to access graph's config
 
 ## 0.4.0
 * Add support for custom validations

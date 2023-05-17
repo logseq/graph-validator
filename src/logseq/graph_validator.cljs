@@ -66,7 +66,8 @@
 (defn- run-tests [dir user-config]
   (let [;; Only allow non-empty options to not override .graph-validator/config.edn
         user-config' (into {} (keep (fn [[k v]] (when (seq v) [k v])) user-config))
-        {:keys [exclude add-namespaces]} (get-validator-config dir user-config')]
+        {:keys [exclude add-namespaces] :as config} (get-validator-config dir user-config')]
+    (reset! state/config config)
     (when (seq exclude)
       (exclude-tests exclude))
     (when (seq add-namespaces)
