@@ -17,7 +17,7 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: logseq/graph-validator
-        path: _graph-validator
+        path: .logseq-graph-validator
 
     - name: Set up Clojure
       uses: DeLaGuardo/setup-clojure@master
@@ -30,10 +30,10 @@ runs:
       with:
         node-version: '18'
         cache: 'yarn'
-        cache-dependency-path: _graph-validator/yarn.lock
+        cache-dependency-path: .logseq-graph-validator/yarn.lock
 
     - name: Fetch yarn deps
-      run: cd _graph-validator && yarn install --immutable
+      run: cd .logseq-graph-validator && yarn install --immutable
       shell: bash
 
     - name: Nbb cache
@@ -43,15 +43,15 @@ runs:
         path: |
           ~/.m2/repository
           ~/.gitlibs
-          _graph-validator/.nbb/.cache
-        key: ${{ runner.os }}-nbb-deps-${{ hashFiles('_graph-validator/nbb.edn') }}
+          .logseq-graph-validator/.nbb/.cache
+        key: ${{ runner.os }}-nbb-deps-${{ hashFiles('.logseq-graph-validator/nbb.edn') }}
         restore-keys: ${{ runner.os }}-nbb-deps-
 
     - name: Fetch nbb deps
       if: steps.nbb-deps.outputs.cache-hit != 'true'
-      run: cd _graph-validator && yarn nbb-logseq -e ':fetching-deps'
+      run: cd .logseq-graph-validator && yarn nbb-logseq -e ':fetching-deps'
       shell: bash
 
     - name: Run nbb tests
-      run: cd _graph-validator && node graph_validator.mjs --directory ${{ inputs.directory }} --exclude ${{ inputs.exclude }}
+      run: cd .logseq-graph-validator && node graph_validator.mjs --directory ${{ inputs.directory }} --exclude ${{ inputs.exclude }}
       shell: bash
