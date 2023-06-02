@@ -6,6 +6,7 @@
             [logseq.graph-validator.config :as config]
             [logseq.graph-validator.default-validations]
             [clojure.edn :as edn]
+            [clojure.string :as string]
             [babashka.cli :as cli]
             [promesa.core :as p]
             [nbb.classpath :as classpath]
@@ -28,9 +29,12 @@
   "Hacky way to exclude tests because t/run-tests doesn't give us test level control"
   [tests]
   (doseq [t tests]
-    (when-let [var (get (ns-publics 'logseq.graph-validator.default-validations) (symbol t))]
-      (println "Excluded test" var)
-      (alter-meta! var dissoc :test))))
+    (let [[test-ns test-name]
+          (if (string/includes? (str t) "/")
+            (string/split t #"/") ["logseq.graph-validator.default-validations" t])]
+      (when-let [var (get (ns-publics (symbol test-ns)) (symbol test-name))]
+        (println "Excluded test" var)
+        (alter-meta! var dissoc :test)))))
 
 (def spec
   "Options spec"
@@ -68,13 +72,13 @@
         user-config' (into {} (keep (fn [[k v]] (when (seq v) [k v])) user-config))
         {:keys [exclude add-namespaces] :as config} (get-validator-config dir user-config')]
     (reset! state/config config)
-    (when (seq exclude)
-      (exclude-tests exclude))
     (when (seq add-namespaces)
       (classpath/add-classpath (path/join dir ".graph-validator")))
     (-> (p/all (map #(require (symbol %)) add-namespaces))
         (p/then
          (fn [_promise-results]
+           (when (seq exclude)
+             (exclude-tests exclude))
            (setup-graph dir)
            (apply t/run-tests (into ['logseq.graph-validator.default-validations]
                                     (map symbol add-namespaces))))))))
