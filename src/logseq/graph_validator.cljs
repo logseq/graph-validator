@@ -74,7 +74,7 @@
     (reset! state/config config)
     (when (seq add-namespaces)
       (classpath/add-classpath (path/join dir ".graph-validator")))
-    (-> (p/all (map #(require (symbol %)) add-namespaces))
+    (-> (p/do! (apply require (map symbol add-namespaces)))
         (p/then
          (fn [_promise-results]
            (when (seq exclude)
