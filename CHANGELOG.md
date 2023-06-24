@@ -1,8 +1,9 @@
 ## Unreleased
+* Add optional class validations
+* Add optional property validations
 * Fix `assets-exist-and-are-used` validation - asset subdirectories caused a false negative
 * Fix `tags-and-page-refs-have-pages` validation - whiteboard page refs weren't recognized
 * Add var to allow validations to access graph's config
-* Add optional class validations
 * Fix exclude option unable to exclude tests from other namespaces
 
 ## 0.4.0
