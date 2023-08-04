@@ -113,6 +113,11 @@
 ;; Only checks top-level assets for now
 (deftest assets-exist-and-are-used
   (let [used-assets (set (map path/basename (ast->asset-links @state/all-asts)))
+        ;; possibly used because not all pdfs will have pdf highlights
+        possibly-used-assets (->> used-assets
+                                  (filter #(re-find #"\.pdf$" %))
+                                  (map #(string/replace-first % #"\.pdf$" ".edn"))
+                                  set)
         all-assets (if (fs/existsSync (path/join @state/graph-dir "assets"))
                      (->> (fs/readdirSync (path/join @state/graph-dir "assets") #js {:withFileTypes true})
                           (filter #(not (.isDirectory %)))
@@ -122,7 +127,7 @@
     (println "Found" (count used-assets) "assets")
     (is (empty? (set/difference used-assets all-assets))
         "All used assets should exist")
-    (is (empty? (set/difference all-assets used-assets))
+    (is (empty? (set/difference all-assets used-assets possibly-used-assets))
         "All assets should be used")))
 
 (defn- keep-for-ast [keep-node-fn nodes]
