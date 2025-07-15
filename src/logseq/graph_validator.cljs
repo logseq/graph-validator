@@ -81,7 +81,11 @@
              (exclude-tests exclude))
            (setup-graph dir)
            (apply t/run-tests (into ['logseq.graph-validator.default-validations]
-                                    (map symbol add-namespaces))))))))
+                                    (map symbol add-namespaces)))))
+        (p/catch
+         (fn [err]
+           (prn :unexpected-failure! err)
+           (js/process.exit 1))))))
 
 (defn -main [& args]
   (let [options (-> (cli/parse-opts args {:spec spec})

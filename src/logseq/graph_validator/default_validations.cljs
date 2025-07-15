@@ -1,16 +1,16 @@
 (ns logseq.graph-validator.default-validations
   "Default validations that are enabled on graph-validator"
-  (:require [clojure.test :as t :refer [deftest is]]
-            [logseq.graph-parser.util.block-ref :as block-ref]
-            [logseq.db.rules :as rules]
-            [clojure.walk :as walk]
+  (:require ["fs" :as fs]
+            ["path" :as path]
+            [clojure.edn :as edn]
             [clojure.set :as set]
             [clojure.string :as string]
+            [clojure.test :as t :refer [deftest is]]
+            [clojure.walk :as walk]
             [datascript.core :as d]
-            [logseq.graph-validator.state :as state]
-            [clojure.edn :as edn]
-            ["fs" :as fs]
-            ["path" :as path]))
+            [logseq.common.util.block-ref :as block-ref]
+            [logseq.db.file-based.rules :as file-rules]
+            [logseq.graph-validator.state :as state]))
 
 (defn- extract-subnodes-by-pred [pred node]
   (cond
@@ -46,7 +46,7 @@
                       :in $ %
                       :where (has-property ?b :id)]
                     @state/db-conn
-                    (vals rules/query-dsl-rules))
+                    [(:has-property file-rules/query-dsl-rules)])
                (map first)
                (map (comp :id :block/properties))
                set))))))
@@ -61,7 +61,7 @@
                       :in $ %
                       :where (has-property ?b :id)]
                     @state/db-conn
-                    (vals rules/query-dsl-rules))
+                    [(:has-property file-rules/query-dsl-rules)])
                (map first)
                (map (comp :id :block/properties))
                set))))))
@@ -181,7 +181,7 @@
               :where
               (has-page-property ?b :alias)]
             db
-            (vals rules/query-dsl-rules))
+            [(:has-page-property file-rules/query-dsl-rules)])
        (map first)
        (map (comp :alias :block/properties))
        (mapcat identity)
@@ -199,7 +199,7 @@
                                     used-page-refs*))
         aliases (get-all-aliases @state/db-conn)
         all-db-pages* (->> (d/q '[:find ?n
-                                  :where [?b :block/name ?n] [?b :block/file] [?b :block/journal? false]]
+                                  :where [?b :block/name ?n] [?b :block/file] (not [?b :block/type "journal"])]
                                 @state/db-conn)
                            (map first)
                            set)

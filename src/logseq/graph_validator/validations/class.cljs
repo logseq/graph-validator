@@ -2,7 +2,7 @@
   "Validations related to managing classes"
   (:require [clojure.test :refer [deftest is]]
             [logseq.graph-validator.state :as state]
-            [logseq.db.rules :as rules]
+            [logseq.db.file-based.rules :as file-rules]
             [datascript.core :as d]))
 
 (defn- get-classes []
@@ -11,12 +11,12 @@
           :in $ %
           :where (page-property ?b :type "Class")]
         @state/db-conn
-        (vals rules/query-dsl-rules))
+        [(:page-property file-rules/query-dsl-rules)])
        (map first)
-       (map #(assoc (:block/properties %) :block/original-name (:block/original-name %)))))
+       (map #(assoc (:block/properties %) :block/title (:block/title %)))))
 
 (deftest classes-have-parents
-  (is (empty? (remove #(or (some? (:parent %)) (= "Thing" (:block/original-name %)))
+  (is (empty? (remove #(or (some? (:parent %)) (= "Thing" (:block/title %)))
                       (get-classes)))
       "All classes have parent property except Thing"))
 
@@ -25,5 +25,5 @@
       "All classes have urls"))
 
 (deftest classes-are-capitalized
-  (is (empty? (remove #(re-find #"^[A-Z]" (:block/original-name %)) (get-classes)))
+  (is (empty? (remove #(re-find #"^[A-Z]" (:block/title %)) (get-classes)))
       "All classes start with a capital letter"))
