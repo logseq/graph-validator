@@ -28,9 +28,9 @@
             [clojure.string :as string]
             [logseq.graph-validator.state :as state]
             [logseq.graph-parser.property :as gp-property]
-            [logseq.graph-parser.util.page-ref :as page-ref]
-            [logseq.graph-parser.util :as gp-util]
-            [logseq.db.rules :as rules]
+            [logseq.common.util.page-ref :as page-ref]
+            [logseq.common.util :as common-util]
+            [logseq.db.file-based.rules :as file-rules]
             [datascript.core :as d]
             [clojure.edn :as edn]
             ["path" :as path]
@@ -100,7 +100,7 @@
   "Get all property entities from :properties"
   [db]
   (d/q
-   '[:find (pull ?b [:block/content :block/original-name :block/properties]) ?p
+   '[:find (pull ?b [:block/content :block/title :block/properties]) ?p
      :in $
      :where
      [?b :block/properties ?p]
@@ -134,10 +134,10 @@
   []
   (->> (d/q '[:find (pull ?b [*])
               :in $ %
-              :where [?b :block/original-name]
+              :where [?b :block/title]
               (has-page-property ?b :type)]
             @state/db-conn
-            (vals rules/query-dsl-rules))
+            [(:has-page-property file-rules/query-dsl-rules)])
        (map first)))
 
 ;; Macro fns
@@ -181,7 +181,7 @@
   {:Integer int?
    :String string?
    :Boolean boolean?
-   :Uri gp-util/url?
+   :Uri common-util/url?
    ;; TODO: Make this configurable
    :Date #(re-matches #"\d{2}-\d{2}-\d{4}" %)
    :Time #(re-matches #"\d\d?:\d\d" %)
@@ -217,7 +217,7 @@
   (let [all-things (get-all-page-things)
         children-maps (->> all-things
                            (filter #(= "Class" (first (get-in % [:block/properties :type]))))
-                           (map #(vector (:block/original-name %) (first (get-in % [:block/properties :parent]))))
+                           (map #(vector (:block/title %) (first (get-in % [:block/properties :parent]))))
                            (into {}))
         range-properties (->> all-things
                               (filter #(= "Property" (first (get-in % [:block/properties :type]))))
@@ -255,7 +255,7 @@
   (let [all-things (get-all-page-things)
         children-maps (->> all-things
                            (filter #(= "Class" (first (get-in % [:block/properties :type]))))
-                           (map #(vector (:block/original-name %) (first (get-in % [:block/properties :parent]))))
+                           (map #(vector (:block/title %) (first (get-in % [:block/properties :parent]))))
                            (into {}))
         range-properties (->> all-things
                               (filter #(= "Property" (first (get-in % [:block/properties :type]))))
@@ -270,7 +270,7 @@
         page-classes (->> all-things
                           (mapcat (fn [b]
                                     (map #(vector % (first (get-in b [:block/properties :type])))
-                                         (into [(:block/original-name b)]
+                                         (into [(:block/title b)]
                                                (get-in b [:block/properties :alias])))))
                           (into {}))]
     (doseq [[property ranges] range-properties]
@@ -299,14 +299,14 @@
                                           props)))
                            (reduce (fn [m [prop ent]]
                                      (assoc-in m
-                                               [prop (select-keys ent [:block/content :block/original-name])]
+                                               [prop (select-keys ent [:block/content :block/title])]
                                                ;; later: Support multiple types
                                                (first (:types ent))))
                                    {}))
         _ (println "Validating domains for" (count domain-properties) "properties")
         children-maps (->> all-things
                            (filter #(= "Class" (first (get-in % [:block/properties :type]))))
-                           (map #(vector (:block/original-name %) (first (get-in % [:block/properties :parent]))))
+                           (map #(vector (:block/title %) (first (get-in % [:block/properties :parent]))))
                            (into {}))]
     (doseq [[property domains] domain-properties]
       (validate-property-domains property domains (property-ents property) children-maps))))
@@ -317,7 +317,7 @@
           :in $ %
           :where (page-property ?b :type "Property")]
         @state/db-conn
-        (vals rules/query-dsl-rules))
+        [(:page-property file-rules/query-dsl-rules)])
        (map first)
        (map #(assoc (:block/properties %) :block/name (:block/name %)))))
 
