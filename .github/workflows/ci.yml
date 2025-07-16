@@ -10,4 +10,4 @@ jobs:
 
       # TODO: Test a real graph
       - name: Run graph-validator tests
-        uses: logseq/graph-validator@feat/db
+        uses: logseq/graph-validator@main

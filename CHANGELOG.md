@@ -1,3 +1,7 @@
+## Unreleased
+
+* Use nbb-logseq and latest logseq deps that supports db-version
+
 ## 0.5.0
 * Add optional class validations
 * Add optional property validations
