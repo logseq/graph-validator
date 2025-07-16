@@ -19,7 +19,7 @@ jobs:
     name: Run graph tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run graph-validator tests
         uses: logseq/graph-validator@main
