@@ -6,7 +6,7 @@ jobs:
     name: Run graph tests
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # TODO: Test a real graph
       - name: Run graph-validator tests

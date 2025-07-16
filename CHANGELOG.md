@@ -1,4 +1,4 @@
-## Unreleased
+## 0.5.0
 * Add optional class validations
 * Add optional property validations
 * Fixes for `assets-exist-and-are-used` validation:

@@ -14,7 +14,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: logseq/graph-validator
         path: .logseq-graph-validator
